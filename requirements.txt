@@ -1,0 +1,5 @@
+copernicusmarine>=2.5.0
+xarray
+netCDF4
+matplotlib
+cartopy

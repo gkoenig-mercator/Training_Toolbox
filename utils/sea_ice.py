@@ -1,84 +1,90 @@
-"""Helpers for the sea ice reanalysis (ARCTIC_MULTIYEAR_PHY_ICE_002_016) on its original grid."""
+"""Helpers for the satellite sea ice concentration record (SEAICE_GLO_SEAICE_L4_REP_OBSERVATIONS_011_009)."""
 
-import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import xarray as xr
 
-# The original grid of the product is a polar stereographic projection on a sphere,
-# described in the product metadata as:
-# +proj=stere +lat_0=90 +lat_ts=90 +lon_0=-45 +R=6378273
-EARTH_RADIUS_M = 6378273
-NEXTSIM_PROJECTION = ccrs.Stereographic(
-    central_latitude=90,
-    central_longitude=-45,
-    true_scale_latitude=90,
-    globe=ccrs.Globe(semimajor_axis=EARTH_RADIUS_M, semiminor_axis=EARTH_RADIUS_M, ellipse=None),
-)
-
-_UNIT_TO_METRES = {"m": 1.0, "meter": 1.0, "meters": 1.0, "metre": 1.0, "metres": 1.0, "km": 1e3, "100km": 1e5}
+EARTH_RADIUS_KM = 6371.0
 
 
-def grid_cell_area_km2(dataset):
-    """Return the true area of each grid cell, in km².
+def select_day_each_year(data, month, day):
+    """Keep one day per year: the available day closest to the given day of the given month.
 
-    On a polar stereographic map, distances are exact at the North Pole and slightly
-    stretched further south. A 3 km x 3 km cell of the grid therefore covers a bit
-    less than 9 km² on Earth away from the pole. This function corrects for it.
-
-    Parameters
-    ----------
-    dataset : xarray.Dataset or xarray.DataArray
-        Data on the original grid, with coordinates "x" and "y".
-
-    Returns
-    -------
-    xarray.DataArray
-        Area of each cell in km², with dimensions (y, x).
+    The first years of the record only have data every other day, so the exact
+    day is not always available. Nothing is downloaded: the selection is only prepared.
     """
-    units = str(dataset["x"].attrs.get("units", "m")).replace(" ", "").lower()
-    to_metres = _UNIT_TO_METRES.get(units, 1.0)
+    times = pd.DatetimeIndex(data["time"].values)
+    positions = []
+    for year in sorted(set(times.year)):
+        in_month = np.flatnonzero((times.year == year) & (times.month == month))
+        if len(in_month) > 0:
+            positions.append(in_month[np.abs(times[in_month].day - day).argmin()])
 
-    x = dataset["x"] * to_metres
-    y = dataset["y"] * to_metres
-    spacing = float(abs(x[1] - x[0]))
-
-    distance_to_pole = np.sqrt(x**2 + y**2)
-    latitude = np.pi / 2 - 2 * np.arctan(distance_to_pole / (2 * EARTH_RADIUS_M))
-    scale_factor = 2 / (1 + np.sin(latitude))
-
-    area = (spacing / scale_factor) ** 2 / 1e6
-    area.name = "cell_area"
-    area.attrs = {"units": "km2", "long_name": "Area of the grid cell"}
-    return area.transpose("y", "x")
+    # Each day is selected separately, as a slice of one day, and the days are then put
+    # together. Selecting all the days at once with a list makes dask read whole blocks
+    # of many days around each selected day, which is much slower.
+    one_day_slices = [data.isel(time=slice(position, position + 1)) for position in positions]
+    return xr.concat(one_day_slices, dim="time")
 
 
-def plot_nextsim_map(data, title, ax=None, step=4, **plot_kwargs):
-    """Plot a 2D field of the original grid (y x x) on a map of the Arctic.
+def _grid_cell_area_km2(concentration):
+    """Area of each grid cell, in km²: regular latitude/longitude grid, or equal-area x/y grid."""
+    for lat_name, lon_name in [("latitude", "longitude"), ("lat", "lon")]:
+        if lat_name in concentration.dims:
+            latitude = concentration[lat_name]
+            dlat = np.radians(float(abs(latitude[1] - latitude[0])))
+            dlon = np.radians(float(abs(concentration[lon_name][1] - concentration[lon_name][0])))
+            area = EARTH_RADIUS_KM**2 * dlat * dlon * np.cos(np.radians(latitude))
+            return area, [lat_name, lon_name]
 
-    Parameters
-    ----------
-    data : xarray.DataArray
-        Field to plot, with dimensions y and x.
-    title : str
-        Title of the map.
-    ax : cartopy GeoAxes, optional
-        Existing map, created with projection=NEXTSIM_PROJECTION. If None, a new figure is created.
-    step : int, optional
-        Keep one grid point out of `step` in each direction, to plot faster.
-    **plot_kwargs
-        Options passed to xarray's plot function (cmap, vmin, vmax, cbar_kwargs...).
+    # Equal-area grid (x/y in metres): all the cells have the same area
+    dx = float(abs(concentration["x"][1] - concentration["x"][0]))
+    dy = float(abs(concentration["y"][1] - concentration["y"][0]))
+    return dx * dy / 1e6, ["y", "x"]
+
+
+def compute_sea_ice_extent(concentration, threshold=15):
+    """Compute the sea ice extent for each date, in million km².
+
+    The extent is the total area of the grid cells where the sea ice concentration
+    is at least `threshold` percent (15% by default, the usual definition).
+    This is the step where the data are actually transferred.
     """
-    if ax is None:
-        _, ax = plt.subplots(figsize=(8, 8), subplot_kw={"projection": NEXTSIM_PROJECTION})
+    units = str(concentration.attrs.get("units", "%")).strip().lower()
+    threshold_in_data_units = threshold if units in ("%", "percent") else threshold / 100
 
-    lighter_data = data.isel(x=slice(None, None, step), y=slice(None, None, step))
-    units = str(data["x"].attrs.get("units", "m")).replace(" ", "").lower()
-    to_metres = _UNIT_TO_METRES.get(units, 1.0)
-    lighter_data = lighter_data.assign_coords(x=lighter_data["x"] * to_metres, y=lighter_data["y"] * to_metres)
+    cell_area, horizontal_dims = _grid_cell_area_km2(concentration)
+    extent = (cell_area * (concentration >= threshold_in_data_units)).sum(dim=horizontal_dims) / 1e6
+    extent = extent.compute()
 
-    lighter_data.plot(ax=ax, x="x", y="y", transform=NEXTSIM_PROJECTION, **plot_kwargs)
-    ax.set_extent([-180, 180, 60, 90], crs=ccrs.PlateCarree())
-    ax.coastlines(linewidth=0.5)
-    ax.gridlines(linestyle=":", linewidth=0.5)
-    ax.set_title(title)
-    return ax
+    extent.name = "sea_ice_extent"
+    extent.attrs = {
+        "units": "million km2",
+        "long_name": f"Sea ice extent (concentration of at least {threshold}%)",
+    }
+    return extent
+
+
+def plot_extent_trend(extent, label):
+    """Plot a sea ice extent time series and its linear trend, and print the trend.
+
+    Call it several times before plt.show() to draw several series on the same figure.
+    """
+    years = extent["time"].dt.year.values
+    slope, intercept = np.polyfit(years, extent.values, 1)
+    trend_per_decade = 10 * slope
+    mean_extent = float(extent.mean())
+
+    plt.gcf().set_size_inches(12, 5)
+    (line,) = plt.plot(years, extent.values, marker="o", label=label)
+    plt.plot(years, slope * years + intercept, "--", color=line.get_color(),
+             label=f"{label} trend: {trend_per_decade:+.2f} million km² per decade")
+    plt.xlabel("Year")
+    plt.ylabel("Sea ice extent (million km²)")
+    plt.title("Arctic sea ice extent")
+    plt.legend()
+
+    print(f"{label}: mean extent {mean_extent:.2f} million km², "
+          f"trend {trend_per_decade:+.2f} million km² per decade "
+          f"({100 * trend_per_decade / mean_extent:+.1f}% of the mean per decade)")

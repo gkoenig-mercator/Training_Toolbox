@@ -1,6 +1,19 @@
-copernicusmarine>=2.5.0
-xarray
-netCDF4
-matplotlib
-cartopy
-pandas
+# Environment used by Binder (repo2docker) to run the training notebooks.
+# Scientific packages come from conda-forge, which provides ready-to-use builds
+# of cartopy and netCDF4. The Copernicus Marine Toolbox is installed with pip.
+name: arctic-toolbox-training
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - xarray
+  - dask
+  - netcdf4
+  - matplotlib
+  - cartopy
+  - ipykernel
+  - pip
+  - pip:
+      - copernicusmarine==2.5.0

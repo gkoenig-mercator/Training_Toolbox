@@ -1,5 +1,7 @@
 """Helpers for the satellite sea ice concentration record (SEAICE_GLO_SEAICE_L4_REP_OBSERVATIONS_011_009)."""
 
+from concurrent.futures import ThreadPoolExecutor
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -55,15 +57,29 @@ def compute_sea_ice_extent(concentration, threshold=15):
     threshold_in_data_units = threshold if units in ("%", "percent") else threshold / 100
 
     cell_area, horizontal_dims = _grid_cell_area_km2(concentration)
-    extent = (cell_area * (concentration >= threshold_in_data_units)).sum(dim=horizontal_dims) / 1e6
-    extent = extent.compute()
 
-    extent.name = "sea_ice_extent"
-    extent.attrs = {
-        "units": "million km2",
-        "long_name": f"Sea ice extent (concentration of at least {threshold}%)",
-    }
-    return extent
+    def extent_of_one_day(position):
+        # Each day is computed on its own, exactly like a map: dask then reads only this
+        # day on the server. Computing all the days together makes dask read whole
+        # blocks of several years, because several selected days share the same block.
+        one_day = concentration.isel(time=position)
+        ice_area = (cell_area * (one_day >= threshold_in_data_units)).sum(dim=horizontal_dims)
+        return float(ice_area.compute()) / 1e6
+
+    # Several days are downloaded at the same time, to go faster
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        values = list(pool.map(extent_of_one_day, range(concentration.sizes["time"])))
+
+    return xr.DataArray(
+        values,
+        coords={"time": concentration["time"].values},
+        dims="time",
+        name="sea_ice_extent",
+        attrs={
+            "units": "million km2",
+            "long_name": f"Sea ice extent (concentration of at least {threshold}%)",
+        },
+    )
 
 
 def plot_extent_trend(extent, label):

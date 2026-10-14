@@ -1,0 +1,9 @@
+# Files downloaded and saved by the notebooks
+data/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc

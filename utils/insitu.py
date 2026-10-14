@@ -31,20 +31,28 @@ def summarize_platforms(table):
     return summary.sort_values("measurements", ascending=False)
 
 
-def plot_platform_positions(table, title="Where the measurements were made"):
-    """Map the positions of the measurements, with one colour per type of platform."""
+def plot_platform_positions(table, title="Where the measurements were made",
+                            bbox=[8, 20, 76.8, 79.6]):
+    """Map the positions of the measurements, with one colour per type of platform.
+
+    `bbox` is the area shown on the map, as [min longitude, max longitude,
+    min latitude, max latitude]. The default shows the west coast of Spitsbergen.
+    """
     positions = table.drop_duplicates(subset=["platform_id", "longitude", "latitude"])
 
-    _, ax = plt.subplots(figsize=(9, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+    projection = ccrs.NorthPolarStereo(central_longitude=(bbox[0] + bbox[1]) / 2)
+    _, ax = plt.subplots(figsize=(8, 8), layout="constrained", subplot_kw={"projection": projection})
+    ax.set_extent(bbox, crs=ccrs.PlateCarree())
     for platform_type, group in positions.groupby("platform_type"):
         description = PLATFORM_TYPES.get(platform_type, platform_type)
-        ax.scatter(group["longitude"], group["latitude"], s=8, label=description,
-                   transform=ccrs.PlateCarree())
+        ax.scatter(group["longitude"], group["latitude"], s=12, label=description,
+                   transform=ccrs.PlateCarree(), zorder=3)
 
-    ax.add_feature(cfeature.LAND.with_scale("50m"), facecolor="lightgrey")
-    ax.coastlines("50m", linewidth=0.5)
-    ax.gridlines(draw_labels=True, linestyle=":", linewidth=0.5)
-    ax.legend(loc="lower left")
+    ax.add_feature(cfeature.LAND.with_scale("10m"), facecolor="lightgrey")
+    ax.coastlines("10m", linewidth=0.5)
+    ax.gridlines(draw_labels={"bottom": "x", "left": "y"}, rotate_labels=False,
+                 linestyle=":", linewidth=0.5)
+    ax.legend(loc="upper left")
     ax.set_title(title)
     return ax
 

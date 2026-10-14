@@ -1,0 +1,16 @@
+# Environment used by Binder (mybinder.org).
+# When this folder exists, Binder ignores the environment.yml at the repo root.
+# JupyterLab and the kernel are provided by Binder itself, so they are not listed here.
+# The "-base"/"-core" packages skip GUI and optional extras to keep the build fast.
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - copernicusmarine=2.5.0
+  - numpy
+  - pandas
+  - xarray
+  - dask-core
+  - netcdf4
+  - matplotlib-base
+  - cartopy

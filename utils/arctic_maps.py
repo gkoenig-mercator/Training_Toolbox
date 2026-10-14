@@ -58,6 +58,20 @@ def plot_arctic_map(data, title, ax=None, step=4,
     ax.set_title(title)
     return ax
 
+def create_two_arctic_maps():
+    """Create a figure with two empty maps centred on the North Pole, side by side.
+
+    Returns
+    -------
+    ax_left, ax_right : cartopy GeoAxes
+        The two maps, to pass to `plot_arctic_map` with `ax=`.
+    """
+    _, (ax_left, ax_right) = plt.subplots(
+        1, 2, figsize=(14, 6), layout="constrained",
+        subplot_kw={"projection": ccrs.NorthPolarStereo()},
+    )
+    return ax_left, ax_right
+
 def plot_depth_section(
     data,
     latitude,

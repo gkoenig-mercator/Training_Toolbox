@@ -1,19 +1,22 @@
-# Introduction to the Copernicus Marine Toolbox
+# Copernicus Marine Toolbox: Arctic Ocean training
 
-Hands-on training to discover, explore and download ocean data from the [Copernicus Marine Service](https://marine.copernicus.eu/) with the **Copernicus Marine Toolbox** in Python.
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gkoenig-mercator/Training_Toolbox/main?urlpath=lab)
 
-The examples focus on **polar regions**: Arctic physics and biogeochemistry models, sea ice, ocean colour and in-situ observations.
+Hands-on training to find, download and analyse ocean data from the [Copernicus Marine Service](https://marine.copernicus.eu/) with the **Copernicus Marine Toolbox** in Python.
+
+All examples focus on the **Arctic Ocean**: ocean physics, sea ice and in situ observations.
 
 ---
 
 ## What you will learn
 
-By the end of this session, you will be able to:
+By the end of the training, you will be able to:
 
-- **search** the Copernicus Marine catalogue and read the metadata of products and datasets (`describe`)
+- find a product in the **Copernicus Marine Data Store** and read its documentation
 - **download original files** as delivered by the data producers (`get`)
 - **extract only the data you need**, for a given area, period, depth and set of variables (`subset`)
-- open and plot the downloaded data with **xarray**
+- **work with data without downloading files**, for gridded data (`open_dataset`) and in situ observations (`read_dataframe`)
+- open, map and analyse the data with **xarray** and **pandas**
 
 No prior knowledge of the toolbox is needed. Basic Python (variables, loops, lists) is enough.
 
@@ -25,12 +28,11 @@ Follow the notebooks in this order:
 
 | # | Notebook | Topic | Duration |
 |---|----------|-------|----------|
-| 1 | `Tutorial_introduction_describe.ipynb` | Exploring the catalogue and its metadata | ~15 min |
-| 2 | `Tutorial_introduction_get.ipynb` | Downloading original files | ~25 min |
-| 3 | `Tutorial_introduction_subset.ipynb` | Extracting a subset of a dataset | ~25 min |
-| 4 | `Tutorial_final_exercise.ipynb` | Quiz and final project: sea ice in the Barents Sea | ~15 min |
+| 1 | [ARCTBX-01-get.ipynb](ARCTBX-01-get.ipynb) | The Data Store, downloading original files with `get`, surface temperature and sea ice | ~30 min |
+| 2 | [ARCTBX-02-subset.ipynb](ARCTBX-02-subset.ipynb) | Extracting a subset with `subset`, Atlantic Water and a section across the Fram Strait | ~30 min |
+| 3 | [ARCTBX-03-open-read.ipynb](ARCTBX-03-open-read.ipynb) | Remote access with `open_dataset` and `read_dataframe`, sea ice extent and in situ temperature | ~40 minutes |
 
-The `videos/` folder contains short screen recordings used in the notebooks. You don't need to open them separately: they play directly inside the notebooks.
+Each notebook ends with exercises to go further.
 
 ---
 
@@ -40,18 +42,20 @@ The `videos/` folder contains short screen recordings used in the notebooks. You
 
 Accounts are free. Register at [data.marine.copernicus.eu/register](https://data.marine.copernicus.eu/register) and keep your **username and password** at hand: you will need them in the first notebook.
 
-### 2. Get the notebooks
+### 2. Choose where to run the notebooks
 
-If you are using the JupyterLab provided for the training, everything is already set up and you can skip this step.
+**Option A: Binder (nothing to install).**
+Click the **launch binder** badge at the top of this page. JupyterLab opens in your browser with everything installed. The session is temporary: download anything you want to keep before closing it.
 
-Otherwise, clone this repository:
+**Option B: on your own computer.**
+Clone this repository:
 
 ```bash
-git clone <URL of this repository>
-cd <repository folder>
+git clone https://github.com/gkoenig-mercator/Training_Toolbox.git
+cd Training_Toolbox
 ```
 
-Then create the conda environment (recommended, especially on Windows and macOS, as `cartopy` and `netcdf4` rely on compiled libraries that conda installs for you):
+Then create the conda environment. Conda is recommended, especially on Windows and macOS, because `cartopy` and `netcdf4` rely on compiled libraries that conda installs for you.
 
 ```bash
 conda env create -f environment.yml
@@ -68,7 +72,7 @@ If you prefer pip, use a fresh virtual environment and run:
 pip install -r requirements.txt jupyterlab
 ```
 
-> The notebooks were written for version **2.5.0** of the toolbox. Other versions may behave slightly differently.
+> The notebooks were written for version **2.5.0** of the toolbox. Other versions may behave slightly differently: see the toolbox's [versioning and end-of-life policy](https://toolbox-docs.marine.copernicus.eu/en/stable/end-of-life.html).
 
 ---
 
@@ -76,8 +80,22 @@ pip install -r requirements.txt jupyterlab
 
 - **Run the cells in order**, from top to bottom.
 - **Log in once.** Your credentials are saved after the first login, so the next notebooks can skip this step.
-- **Exercises** are followed by a **Hint**, which you can expand by clicking on it, and a **Solution** section. Try on your own first!
+- **Exercises** come with a **Hint**, which you can expand by clicking on it, and a **Solution** cell. Try on your own first! Running the solution cell loads the answer from the `_solved/` folder.
 - **Long outputs:** right-click on a cell output and select **Enable Scrolling for Outputs** to make it easier to read.
+
+---
+
+## Repository layout
+
+```
+.
+├── ARCTBX-0*.ipynb    # the training notebooks
+├── _solved/           # solutions to the exercises
+├── utils/             # plotting and analysis helpers used by the notebooks
+├── img/               # screenshots shown in the notebooks
+├── environment.yml    # conda environment (also used by Binder)
+└── requirements.txt   # pip alternative
+```
 
 ---
 
@@ -86,20 +104,21 @@ pip install -r requirements.txt jupyterlab
 **The login cell fails or asks for my password again.**
 Check your username and password on the [Copernicus Marine website](https://data.marine.copernicus.eu/). If you have just created your account, make sure you have confirmed it from the email you received.
 
+**`ModuleNotFoundError: No module named 'copernicusmarine'`**
+The notebook is running on the wrong kernel. Select **copernicusmarine-training** from the kernel menu (top right of the notebook).
+
 **A file name ends with `_(1)`, `_(2)`…**
 When you run a download twice, the toolbox does not overwrite the existing file: it creates a new one with a suffix. Store the output of the command in a variable and open `response.file_path` instead of typing the file name.
 
 **A download takes a very long time.**
 Always start with `dry_run=True` to check the number of files and the total size before downloading. Some datasets are several hundred GB.
 
-**A cell from the catalogue (`describe`) is very slow.**
-That's expected: without a `product_id` or `dataset_id`, describe goes through the whole catalogue.
-
 ---
 
 ## Useful links
 
 - [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products): browse all products and datasets
+- [Copernicus Marine Help Center](https://help.marine.copernicus.eu/): guides and FAQs
 - [Toolbox documentation](https://toolbox-docs.marine.copernicus.eu/): full reference of the commands and their options
 - [xarray documentation](https://docs.xarray.dev/): working with NetCDF and gridded data in Python
 

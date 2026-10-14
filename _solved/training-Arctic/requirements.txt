@@ -1,8 +1,0 @@
-copernicusmarine>=2.5.0
-xarray
-dask
-netCDF4
-numpy
-pandas
-matplotlib
-cartopy

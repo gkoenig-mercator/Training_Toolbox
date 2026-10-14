@@ -1,4 +1,4 @@
-# Get the salinity file of exercise 3 (it is not downloaded again if it is already there)
+# Get the salinity file of exercise 4 (it is not downloaded again if it is already there)
 salinity_response = copernicusmarine.subset(
     dataset_id=dataset_id,
     variables=["so"],

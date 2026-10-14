@@ -1,0 +1,15 @@
+name: copernicusmarine-training
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - copernicusmarine=2.5.0
+  - numpy
+  - pandas
+  - xarray
+  - dask
+  - netcdf4
+  - matplotlib
+  - cartopy
+  - ipykernel
+  - jupyterlab

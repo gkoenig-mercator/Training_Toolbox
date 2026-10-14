@@ -51,10 +51,21 @@ git clone <URL of this repository>
 cd <repository folder>
 ```
 
-Then install the required packages:
+Then create the conda environment (recommended, especially on Windows and macOS, as `cartopy` and `netcdf4` rely on compiled libraries that conda installs for you):
 
 ```bash
-pip install copernicusmarine==2.5.0 xarray pandas matplotlib jupyterlab
+conda env create -f environment.yml
+conda activate copernicusmarine-training
+python -m ipykernel install --user --name copernicusmarine-training
+jupyter lab
+```
+
+In JupyterLab, select the **copernicusmarine-training** kernel for each notebook.
+
+If you prefer pip, use a fresh virtual environment and run:
+
+```bash
+pip install -r requirements.txt jupyterlab
 ```
 
 > The notebooks were written for version **2.5.0** of the toolbox. Other versions may behave slightly differently.

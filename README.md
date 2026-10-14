@@ -60,16 +60,18 @@ Then create the conda environment. Conda is recommended, especially on Windows a
 ```bash
 conda env create -f environment.yml
 conda activate copernicusmarine-training
-python -m ipykernel install --user --name copernicusmarine-training
+python -m ipykernel install --user --name python_v1.1 --display-name "Copernicus Marine (Python)"
 jupyter lab
 ```
 
-In JupyterLab, select the **copernicusmarine-training** kernel for each notebook.
+The `ipykernel` line registers the **Copernicus Marine (Python)** kernel, which the notebooks open with automatically.
 
 If you prefer pip, use a fresh virtual environment and run:
 
 ```bash
 pip install -r requirements.txt jupyterlab
+python -m ipykernel install --user --name python_v1.1 --display-name "Copernicus Marine (Python)"
+jupyter lab
 ```
 
 > The notebooks were written for version **2.5.0** of the toolbox. Other versions may behave slightly differently: see the toolbox's [versioning and end-of-life policy](https://toolbox-docs.marine.copernicus.eu/en/stable/end-of-life.html).
@@ -93,7 +95,8 @@ pip install -r requirements.txt jupyterlab
 ├── _solved/           # solutions to the exercises
 ├── utils/             # plotting and analysis helpers used by the notebooks
 ├── img/               # screenshots shown in the notebooks
-├── environment.yml    # conda environment (also used by Binder)
+├── binder/            # environment and kernel setup used by Binder
+├── environment.yml    # conda environment for local installs
 └── requirements.txt   # pip alternative
 ```
 
@@ -105,7 +108,7 @@ pip install -r requirements.txt jupyterlab
 Check your username and password on the [Copernicus Marine website](https://data.marine.copernicus.eu/). If you have just created your account, make sure you have confirmed it from the email you received.
 
 **`ModuleNotFoundError: No module named 'copernicusmarine'`**
-The notebook is running on the wrong kernel. Select **copernicusmarine-training** from the kernel menu (top right of the notebook).
+The notebook is running on the wrong kernel. Select **Copernicus Marine (Python)** from the kernel menu (top right of the notebook).
 
 **A file name ends with `_(1)`, `_(2)`…**
 When you run a download twice, the toolbox does not overwrite the existing file: it creates a new one with a suffix. Store the output of the command in a variable and open `response.file_path` instead of typing the file name.

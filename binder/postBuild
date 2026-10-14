@@ -1,0 +1,5 @@
+#!/bin/bash
+set -euo pipefail
+
+# Register the kernel the notebooks expect ("python_v1.1"), so they open on it without a prompt.
+python -m ipykernel install --sys-prefix --name python_v1.1 --display-name "Copernicus Marine (Python)"

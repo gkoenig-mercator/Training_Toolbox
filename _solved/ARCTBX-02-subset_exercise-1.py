@@ -5,5 +5,5 @@ whole_dataset_dry_run = copernicusmarine.subset(
     dry_run=True,
 )
 
-print(f"Estimated file size: {whole_dataset_dry_run.file_size / 1000:.0f} GB")
+print(f"Estimated file size: {whole_dataset_dry_run.file_size / 1024:.0f} GB")
 print(f"That is {whole_dataset_dry_run.file_size / dry_run_response.file_size:,.0f} times larger than our Fram Strait selection")

@@ -5,4 +5,4 @@ reprocessed_dataset = copernicusmarine.get(
 )
 
 print(f"Number of files: {reprocessed_dataset.number_of_files_to_download}")
-print(f"Total size: {reprocessed_dataset.total_size / 1000:.0f} GB")
+print(f"Total size: {reprocessed_dataset.total_size / 1024:.0f} GB")

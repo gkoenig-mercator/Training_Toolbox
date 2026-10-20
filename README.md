@@ -105,7 +105,7 @@ jupyter lab
 ## Troubleshooting
 
 **The login cell fails or asks for my password again.**
-Check your username and password on the [Copernicus Marine website](https://data.marine.copernicus.eu/). If you have just created your account, make sure you have confirmed it from the email you received.
+Check the Help Center article about [How to log in, log out or change the password of my Copernicus Marine account](https://help.marine.copernicus.eu/en/articles/4444552-how-to-log-in-log-out-or-change-the-password-of-my-copernicus-marine-account) about how to login or reset your password.
 
 **`ModuleNotFoundError: No module named 'copernicusmarine'`**
 The notebook is running on the wrong kernel. Select **Copernicus Marine (Python)** from the kernel menu (top right of the notebook).

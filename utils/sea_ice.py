@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import xarray as xr
+from scipy.stats import linregress
 
 EARTH_RADIUS_KM = 6371.0
 
@@ -88,19 +89,22 @@ def plot_extent_trend(extent, label):
     Call it several times before plt.show() to draw several series on the same figure.
     """
     years = extent["time"].dt.year.values
-    slope, intercept = np.polyfit(years, extent.values, 1)
+    result = linregress(years, extent.values)
+    slope, intercept = result.slope, result.intercept
     trend_per_decade = 10 * slope
     mean_extent = float(extent.mean())
 
     plt.gcf().set_size_inches(12, 5)
     (line,) = plt.plot(years, extent.values, marker="o", label=label)
     plt.plot(years, slope * years + intercept, "--", color=line.get_color(),
-             label=f"{label} trend: {trend_per_decade:+.2f} million km² per decade")
+             label=f"Trend: {10 * result.slope:+.2f} ± {2 * 10 * result.stderr:.2f} million km² per decade, (R² = {result.rvalue**2:.2f})")
     plt.xlabel("Year")
     plt.ylabel("Sea ice extent (million km²)")
     plt.title("Arctic sea ice extent")
     plt.legend()
 
+    trend_error = 2 * 10 * result.stderr   # ± 2 standard deviations, per decade (about 95%)
     print(f"{label}: mean extent {mean_extent:.2f} million km², "
-          f"trend {trend_per_decade:+.2f} million km² per decade "
-          f"({100 * trend_per_decade / mean_extent:+.1f}% of the mean per decade)")
+          f"trend {trend_per_decade:+.2f} ± {trend_error:.2f} million km² per decade "
+          f"({100 * trend_per_decade / mean_extent:+.1f} ± {100 * trend_error / mean_extent:.1f}% of the mean per decade, "
+          f"R² = {result.rvalue**2:.2f})")

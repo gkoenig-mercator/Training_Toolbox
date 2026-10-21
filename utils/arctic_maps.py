@@ -67,9 +67,11 @@ def create_two_arctic_maps():
         The two maps, to pass to `plot_arctic_map` with `ax=`.
     """
     _, (ax_left, ax_right) = plt.subplots(
-        1, 2, figsize=(14, 6), layout="constrained",
+        nrows=1, ncols=2,
+        figsize=(14, 7),
         subplot_kw={"projection": ccrs.NorthPolarStereo()},
-    )
+        layout="constrained",
+        )
     return ax_left, ax_right
 
 def plot_depth_section(

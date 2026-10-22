@@ -14,15 +14,15 @@ salinity_response = copernicusmarine.subset(
     output_filename="fram_strait_salinity_2024-08.nc",
     skip_existing=True,
 )
-salinity = xr.open_dataset(salinity_response.file_path)["so"].isel(time=0).sortby("depth")
-salinity_section = salinity.sel(latitude=79, method="nearest")
+salinity = xr.open_dataset(salinity_response.file_path)
 
-fig, ax = plt.subplots(figsize=(12, 5))
-salinity_section.plot(
-    ax=ax, y="depth", yincrease=False,
-    cmap="viridis", vmin=32, vmax=35.2,
-    cbar_kwargs={"label": "Salinity"},
+plot_depth_section(
+    salinity["so"],
+    latitude=79,
+    title="Salinity across the Fram Strait at 79°N - August 2024 (black line: 34.9)",
+    cbar_label="Salinity",
+    cmap="viridis",
+    vmin=32,
+    vmax=35.2,
+    contour_level=34.9,
 )
-salinity_section.plot.contour(ax=ax, y="depth", yincrease=False, levels=[34.9], colors="black")
-ax.set_title("Salinity across the Fram Strait at 79°N - August 2024 (black line: 34.9)")
-plt.show()

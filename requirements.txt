@@ -6,6 +6,6 @@ dask
 netcdf4
 matplotlib
 cartopy
- ipykernel
+ipykernel
 scipy
 

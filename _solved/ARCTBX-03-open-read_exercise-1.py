@@ -1,8 +1,8 @@
-# Open the daily dataset remotely: nothing is downloaded yet
-daily_sea_ice = copernicusmarine.open_dataset(
-    dataset_id="cmems_mod_arc_phy_my_nextsim_P1D-m",
-    variables=["siconc"],
+# Open the continuation of the record remotely: nothing is downloaded yet
+interim_sea_ice = copernicusmarine.open_dataset(
+    dataset_id="OSISAF-GLO-SEAICE_CONC_CONT_TIMESERIES-NH-LA-OBS",
+    variables=["ice_conc"],
 )
 
-print("Number of days:", daily_sea_ice.time.size)
-print("Size if it were downloaded (GB):", round(daily_sea_ice["siconc"].nbytes / (1024**3)))
+print("Number of days:", interim_sea_ice.time.size)
+print("Last day:", interim_sea_ice.time.values[-1])

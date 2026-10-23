@@ -1,6 +1,6 @@
 # Copernicus Marine Toolbox: Arctic Ocean training
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gkoenig-mercator/Training_Toolbox/main?urlpath=lab)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://icl-binder.marine.copernicus.eu/v2/gh/gkoenig-mercator/Training_Toolbox/main)
 
 Hands-on training to find, download and analyse ocean data from the [Copernicus Marine Service](https://marine.copernicus.eu/) with the **Copernicus Marine Toolbox** in Python.
 

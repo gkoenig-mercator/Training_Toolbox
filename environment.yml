@@ -4,11 +4,14 @@ channels:
 dependencies:
   - python=3.12
   - copernicusmarine=2.5.0
-  - numpy
-  - pandas
-  - xarray
-  - dask
-  - netcdf4
+  # Versions compatible with copernicusmarine 2.5.0, from the Toolbox's dependency list
+  # and compatibility notes (https://toolbox-docs.marine.copernicus.eu/en/v2.2.0/installation.html)
+  - numpy>=2.1,<3
+  - pandas>=2.1,<4
+  - xarray>=2025.3.0
+  - dask>=2024.8.1
+  - netcdf4<=1.7.2
+  - zarr>=2.18.3,<4
   - matplotlib
   - cartopy
   - ipykernel
